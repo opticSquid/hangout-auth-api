@@ -75,7 +75,9 @@ public class DeviceUtil {
                     .toEntity(IpDetails.class);
 
             IpDetails ipDetails = response.getBody();
-
+            log.debug("device details: {}", deviceDetails);
+            log.debug("ip details: {}", ipDetails);
+            log.debug("user: {}", user);
             if (response.getStatusCode().is4xxClientError() || ipDetails == null
                     || !"success".equals(ipDetails.status())) {
                 log.warn("Failed to fetch IP details for {}: {}", ip,
