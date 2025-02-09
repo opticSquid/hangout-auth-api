@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hangout.core.auth_api.dto.request.DeviceDetails;
 import com.hangout.core.auth_api.dto.response.AuthResponse;
 import com.hangout.core.auth_api.dto.response.DefaultResponse;
 import com.hangout.core.auth_api.service.AccessService;
 import com.hangout.core.auth_api.service.UserDetailsServiceImpl;
+import com.hangout.core.auth_api.utils.DeviceUtil;
 
 import io.micrometer.observation.annotation.Observed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,7 +38,8 @@ public class UserController {
 	@Operation(summary = "update device details to trust the current device and unlock all functionalities")
 	public ResponseEntity<AuthResponse> trustDevice(@RequestHeader("Authorization") String accessToken,
 			HttpServletRequest request) {
-		AuthResponse response = this.accessService.trustDevice(accessToken.substring(7), getDeviceDetails(request));
+		AuthResponse response = this.accessService.trustDevice(accessToken.substring(7),
+				DeviceUtil.getDeviceDetails(request));
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
@@ -47,7 +48,8 @@ public class UserController {
 	@Operation(summary = "logout of an active session")
 	public ResponseEntity<DefaultResponse> logout(@RequestHeader("Authorization") String accessToken,
 			HttpServletRequest req) {
-		return new ResponseEntity<>(this.accessService.logout(accessToken.substring(7), getDeviceDetails(req)),
+		return new ResponseEntity<>(
+				this.accessService.logout(accessToken.substring(7), DeviceUtil.getDeviceDetails(req)),
 				HttpStatus.OK);
 	}
 
@@ -68,14 +70,5 @@ public class UserController {
 
 	private Authentication getAuthenticatedUser() {
 		return SecurityContextHolder.getContext().getAuthentication();
-	}
-
-	private DeviceDetails getDeviceDetails(HttpServletRequest request) {
-		String ip = request.getRemoteAddr();
-		String os = request.getHeader("OS");
-		Integer screenWidth = Integer.parseInt(request.getHeader("Screen-Width"));
-		Integer screenHeight = Integer.parseInt(request.getHeader("Screen-Height"));
-		String userAgent = request.getHeader("User-Agent");
-		return new DeviceDetails(ip, os, screenWidth, screenHeight, userAgent);
 	}
 }

@@ -17,6 +17,7 @@ import com.hangout.core.auth_api.dto.response.IpDetails;
 import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -45,6 +46,24 @@ public class DeviceUtil {
         WEIGHTS.put("hosting", 9); // If changed, should breach threshold
 
         TOTALWEIGHT = WEIGHTS.values().stream().mapToInt(Integer::intValue).sum();
+    }
+
+    /**
+     * Collects device details from incoming request
+     * 
+     * @param request the incoming request body
+     * @return the details of the device collected from headers of the incoming
+     *         request
+     */
+    public static DeviceDetails getDeviceDetails(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For")
+                : request.getRemoteAddr();
+        log.debug("incoming ip address: {}", ip);
+        String os = request.getHeader("OS");
+        Integer screenWidth = Integer.parseInt(request.getHeader("Screen-Width"));
+        Integer screenHeight = Integer.parseInt(request.getHeader("Screen-Height"));
+        String userAgent = request.getHeader("User-Agent");
+        return new DeviceDetails(ip, os, screenWidth, screenHeight, userAgent);
     }
 
     /**
