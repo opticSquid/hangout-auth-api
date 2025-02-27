@@ -65,7 +65,7 @@ class LoginService {
         log.debug("user id from db: {}", user.getUserId());
         // if user is not enabled, do not allow login
         if (!user.isEnabled()) {
-            return new AuthResponse(null, null, "user not enabled");
+            return new AuthResponse(null, null, null, "user not enabled");
         } else {
             // user is enabled
             // check if the current device is a trusted device or not
@@ -161,7 +161,7 @@ class LoginService {
         trustedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(trustedDevice);
         this.userRepo.save(user);
-        return new AuthResponse(accessJwt, refreshJwt, "success");
+        return new AuthResponse(accessJwt, refreshJwt, user.getUserId(), "success");
     }
 
     private AuthResponse loginAfterUserManuallyLoggedOut(
@@ -178,7 +178,7 @@ class LoginService {
         trustedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(trustedDevice);
         this.userRepo.save(user);
-        return new AuthResponse(accessJwt, refreshJwt, "success");
+        return new AuthResponse(accessJwt, refreshJwt, user.getUserId(), "success");
     }
 
     private AuthResponse userLoggingInAnUntrustedDevice(Device untrustedDevice, User user) {
@@ -196,7 +196,7 @@ class LoginService {
         untrustedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(untrustedDevice);
         this.userRepo.save(user);
-        return new AuthResponse(accessJwt, shortTermRefreshJwt, "untrusted device login");
+        return new AuthResponse(accessJwt, shortTermRefreshJwt, user.getUserId(), "untrusted device login");
     }
 
     private AuthResponse userLoggingInAnUnIdentifiedDevice(Device unIdentifiedDevice, User user) {
@@ -216,6 +216,6 @@ class LoginService {
         unIdentifiedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(unIdentifiedDevice);
         this.userRepo.save(user);
-        return new AuthResponse(accessJwt, shortTermRefreshJwt, "untrusted device login");
+        return new AuthResponse(accessJwt, shortTermRefreshJwt, user.getUserId(), "untrusted device login");
     }
 }
