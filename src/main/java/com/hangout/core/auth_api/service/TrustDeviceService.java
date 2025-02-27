@@ -1,5 +1,6 @@
 package com.hangout.core.auth_api.service;
 
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -57,7 +58,7 @@ class TrustDeviceService {
         if (device.isTrusted()) {
             throw new AlreadyTrustedDeviceException("Device is already trusted by the user.");
         } else {
-            AuthResponse issuedTokens = issueLongTermTokens(user.getUsername(), deviceId);
+            AuthResponse issuedTokens = issueLongTermTokens(user.getUsername(), deviceId, user.getUserId());
             Date accessTokenExpiryTime = this.accessTokenUtil.getExpiresAt(issuedTokens.accessToken());
             Date refreshTokenExpiryTime = this.refreshTokenUtil.getExpiresAt(issuedTokens.refreshToken());
             AccessRecord accessRecord = this.accessRecordRepo
@@ -111,9 +112,9 @@ class TrustDeviceService {
         return deviceFromDb;
     }
 
-    private AuthResponse issueLongTermTokens(String username, UUID deviceId) {
+    private AuthResponse issueLongTermTokens(String username, UUID deviceId, BigInteger userId) {
         String accessToken = this.accessTokenUtil.generateToken(username, deviceId);
         String refreshToken = this.refreshTokenUtil.generateToken(username, deviceId);
-        return new AuthResponse(accessToken, refreshToken, "success");
+        return new AuthResponse(accessToken, refreshToken, userId, "success");
     }
 }

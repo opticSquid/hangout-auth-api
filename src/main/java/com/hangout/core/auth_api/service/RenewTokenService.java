@@ -92,7 +92,7 @@ class RenewTokenService {
         } else {
             resposeMessage = "untrusted device token renew";
         }
-        return new AuthResponse(newAccessToken, refreshToken, resposeMessage);
+        return new AuthResponse(newAccessToken, refreshToken, user.getUserId(), resposeMessage);
     }
 
     private Boolean validateRefreshToken(String refreshToken) {
