@@ -17,6 +17,8 @@ import com.hangout.core.auth_api.dto.response.IpDetails;
 import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
 
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,6 +57,7 @@ public class DeviceUtil {
      * @return the details of the device collected from headers of the incoming
      *         request
      */
+    @WithSpan(value = "get device's details from headers")
     public static DeviceDetails getDeviceDetails(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For")
                 : request.getRemoteAddr();
@@ -74,6 +77,7 @@ public class DeviceUtil {
      * @param user          current user
      * @return untrusted device object
      */
+    @WithSpan(kind = SpanKind.CLIENT, value = "build device profile from incoming device details")
     public Device buildDeviceProfile(DeviceDetails deviceDetails, User user) {
         String ip = deviceDetails.ip();
 

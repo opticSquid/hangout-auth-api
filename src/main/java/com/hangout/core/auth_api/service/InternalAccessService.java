@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import com.hangout.core.auth_api.dto.request.PublicUserDetails;
 import com.hangout.core.auth_api.dto.request.UserValidationRequest;
 
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -15,7 +15,7 @@ public class InternalAccessService {
     @Autowired
     private TokenValidityCheckerService tokenValidityCheckerService;
 
-    @Observed(name = "check-token-validity", contextualName = "service")
+    @WithSpan(value = "check-token-validity service")
     public PublicUserDetails checkTokenValidity(UserValidationRequest validationRequest) {
         return this.tokenValidityCheckerService.checkTokenValidity(validationRequest);
     }

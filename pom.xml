@@ -21,61 +21,19 @@
 		<spring-doc.version>2.6.0</spring-doc.version>
 		<otel-appender.version>2.10.0-alpha</otel-appender.version>
 		<jwt-version>0.12.6</jwt-version>
+		<otel.version>2.13.1</otel.version>
 	</properties>
 	<dependencies>
 		<!--START
 		Observability
 		dependencies-->
 		<dependency>
+			<groupId>io.opentelemetry.instrumentation</groupId>
+			<artifactId>opentelemetry-spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<!--Required
-		for tracing annotations-->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-aop</artifactId>
-		</dependency>
-		<!--measures
-		all metrics in OTLP format-->
-		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>micrometer-registry-otlp</artifactId>
-		</dependency>
-		<!--Takes
-		traces from Micrometer observation API and converts it to Open Telemetry format-->
-		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>micrometer-tracing-bridge-otel</artifactId>
-		</dependency>
-		<!--Sends
-		the traces to any endpoint that can accept OTEL traces-->
-		<dependency>
-			<groupId>io.opentelemetry</groupId>
-			<artifactId>opentelemetry-exporter-otlp</artifactId>
-		</dependency>
-		<!--Takes
-		log data and sends it to an endpoint that can accept Open Telemetry Logs-->
-		<dependency>
-			<groupId>io.opentelemetry.instrumentation</groupId>
-			<artifactId>opentelemetry-logback-appender-1.0</artifactId>
-			<version>${otel-appender.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.opentelemetry.semconv</groupId>
-			<artifactId>opentelemetry-semconv</artifactId>
-			<version>1.28.0-alpha</version>
-			<!-- <scope>compile</scope> -->
-			<!-- <exclusions>
-				<exclusion>
-					<groupId>io.opentelemetry.instrumentation</groupId>
-					<artifactId>opentelemetry-instrumentation-bom-alpha</artifactId>
-				</exclusion>
-			</exclusions> -->
-		</dependency>
-		<dependency>
-			<groupId>io.opentelemetry</groupId>
-			<artifactId>opentelemetry-sdk</artifactId>
 		</dependency>
 		<!--END
 		Observability
@@ -178,9 +136,9 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
+				<groupId>io.opentelemetry.instrumentation</groupId>
+				<artifactId>opentelemetry-instrumentation-bom</artifactId>
+				<version>${otel.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
