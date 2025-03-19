@@ -26,7 +26,8 @@ import com.hangout.core.auth_api.exceptions.JwtNotValidException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
 import com.hangout.core.auth_api.repository.UserRepo;
 
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,7 +50,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private String activationEmailTopic;
 
     @Override
-    @Observed(name = "load-by-user-name", contextualName = "service")
+    @WithSpan(value = "find user by username")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> user = userRepo.findByUserName(username);
         if (user.isPresent()) {
@@ -59,7 +60,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         throw new UsernameNotFoundException("User not found with username: " + username);
     }
 
-    @Observed(name = "signup", contextualName = "service")
+    @WithSpan(kind = SpanKind.PRODUCER, value = "add new user")
     public void addNewUser(NewUser user) throws Exception {
         User newUser = new User(user.username(), user.email(), passwordEncoder.encode(user.password()));
         userRepo.save(newUser);
@@ -68,7 +69,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional
-    @Observed(name = "verify-email", contextualName = "service")
+    @WithSpan(kind = SpanKind.CLIENT, value = "verify user's email")
     public String verifyToken(String token) {
         try {
             ResponseEntity<AccountVerficationResponse> res = restClient
@@ -101,7 +102,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional
-    @Observed(name = "delete-account", contextualName = "service")
+    @WithSpan(value = "delete user's account")
     public void deleteUser(String username) throws Exception {
         this.userRepo.deleteByUserName(username);
     }

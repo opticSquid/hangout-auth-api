@@ -57,7 +57,7 @@ public class DeviceUtil {
      * @return the details of the device collected from headers of the incoming
      *         request
      */
-    @WithSpan(value = "get device's details from headers")
+    @WithSpan(value = "collect device's details from request headers")
     public static DeviceDetails getDeviceDetails(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For")
                 : request.getRemoteAddr();
@@ -119,6 +119,7 @@ public class DeviceUtil {
     /**
      * Computes a simple fingerprint hash based on weighted properties.
      */
+    @WithSpan(value = "compute a hash based finger print for a particular device")
     public Integer computeFingerprint(Device device) {
         return Objects.hash(
                 device.getOs().hashCode() * WEIGHTS.get("os"),
@@ -139,6 +140,7 @@ public class DeviceUtil {
     /**
      * Checks if a new login is from a different device.
      */
+    @WithSpan(value = "check if the incoming device is same as the stored device in database")
     public static Boolean isNewDevice(Device oldDevice, Device newDevice) {
         int similarity = compareDevices(oldDevice, newDevice);
         return similarity < THRESHOLD;
@@ -148,6 +150,7 @@ public class DeviceUtil {
      * Compares two device profiles and returns a similarity score.
      * Higher score = more similarity. If below threshold, treat as a new device.
      */
+    @WithSpan(value = "compare two devices and give a similarity score")
     private static Integer compareDevices(Device oldDevice, Device newDevice) {
         Integer similarityScore = 0;
 
@@ -173,11 +176,13 @@ public class DeviceUtil {
     /**
      * Compares two properties and assigns a score based on their weight.
      */
+    @WithSpan(value = "compare two properties and assign the given weight if they are same otherwise assign 0")
     private static int compareProperty(Object oldVal, Object newVal, String property) {
         return oldVal.equals(newVal) ? WEIGHTS.get(property) : 0;
     }
 
-    // Allow some room for small dpi changes in case of zomm or fractional scaling
+    // Allow some room for small dpi changes in case of zoom or fractional scaling
+    @WithSpan(value = "compare screen resolutions keeping a small variance in their value to consider fractional scaling")
     private static int compareScreenResolution(Device oldDevice, Device newDevice) {
         int weight = DeviceUtil.WEIGHTS.get("screen");
 
@@ -200,6 +205,7 @@ public class DeviceUtil {
     /**
      * Creates a dummy IpDetails object for local/private IPs.
      */
+    @WithSpan(value = "create dummy ip details object for private ips in local testing")
     private IpDetails createTestIpDetails() {
         return new IpDetails("test", Optional.empty(), "test", "test", "test", "test",
                 "test", "test", "test", false, false, false);

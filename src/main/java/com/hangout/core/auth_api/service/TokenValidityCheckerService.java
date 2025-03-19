@@ -19,6 +19,7 @@ import com.hangout.core.auth_api.repository.DeviceRepo;
 import com.hangout.core.auth_api.repository.UserRepo;
 import com.hangout.core.auth_api.utils.JwtUtil;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -32,6 +33,7 @@ class TokenValidityCheckerService {
     @Autowired
     private DeviceRepo deviceRepo;
 
+    @WithSpan(value = "check the validity of the token")
     public PublicUserDetails checkTokenValidity(UserValidationRequest validationRequest) {
         String acessToken = validateAndExtractAccessToken(validationRequest.accessToken());
         String username = this.accessTokenUtil.getUsername(acessToken);
@@ -42,6 +44,7 @@ class TokenValidityCheckerService {
 
     }
 
+    @WithSpan(value = "extract access token from header and validate it")
     private String validateAndExtractAccessToken(String accessToken) {
         if (accessToken != null && accessToken.startsWith("Bearer ")) {
             String jwt = accessToken.substring(7);
@@ -55,6 +58,7 @@ class TokenValidityCheckerService {
         }
     }
 
+    @WithSpan(value = "check if the user is enabled in database")
     private User findEnabledUser(String username) {
         Optional<User> user = this.userRepo.findByUserName(username);
         if (user.isPresent() && user.get().isEnabled() == true) {
@@ -65,6 +69,7 @@ class TokenValidityCheckerService {
         }
     }
 
+    @WithSpan(value = "check if the incoming device has been used by the user or not")
     private Device findDevice(BigInteger userId, UUID deviceId) {
         Optional<Device> deviceFromDb = this.deviceRepo.validateDeviceOwnership(deviceId, userId);
         if (deviceFromDb.isPresent()) {

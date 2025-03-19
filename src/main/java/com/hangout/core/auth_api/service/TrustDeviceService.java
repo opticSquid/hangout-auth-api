@@ -25,7 +25,7 @@ import com.hangout.core.auth_api.repository.UserRepo;
 import com.hangout.core.auth_api.utils.DeviceUtil;
 import com.hangout.core.auth_api.utils.JwtUtil;
 
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,7 +48,7 @@ class TrustDeviceService {
     private AccessRecordRepo accessRecordRepo;
 
     @Transactional
-    @Observed(name = "trust-device", contextualName = "trust-device-service")
+    @WithSpan(value = "trust device service")
     public AuthResponse trustDevice(String accessToken, DeviceDetails deviceDetails) {
         log.info("accessToken: {}", accessToken, deviceDetails);
         String username = this.accessTokenUtil.getUsername(accessToken);
@@ -75,6 +75,7 @@ class TrustDeviceService {
         }
     }
 
+    @WithSpan(value = "check if the user is enabled in database")
     private User findEnabledUserFromDb(String username) {
         Optional<User> user = this.userRepo.findByUserName(username);
         if (user.isPresent() && user.get().isEnabled()) {
@@ -84,6 +85,7 @@ class TrustDeviceService {
         }
     }
 
+    @WithSpan(value = "check if the device is same as used for login")
     private Device checkIfTheDeviceIsSameAsUsedForLogin(UUID incomingDeviceId, DeviceDetails incomingDeviceDetails,
             User user) {
         // Build the device profile based on incoming details
@@ -112,6 +114,7 @@ class TrustDeviceService {
         return deviceFromDb;
     }
 
+    @WithSpan(value = "issue long term tokens to a trusted device")
     private AuthResponse issueLongTermTokens(String username, UUID deviceId, BigInteger userId) {
         String accessToken = this.accessTokenUtil.generateToken(username, deviceId);
         String refreshToken = this.refreshTokenUtil.generateToken(username, deviceId);

@@ -11,9 +11,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -25,7 +26,7 @@ public class AccessTokenUtil implements JwtUtil {
     private Long EXPIRY_TIME;
 
     @Override
-    @Observed(name = "generate-token", contextualName = "access-token")
+    @WithSpan(value = "generate-token - access-token")
     public String generateToken(String username, UUID deviceId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("deviceId", deviceId);
@@ -34,7 +35,7 @@ public class AccessTokenUtil implements JwtUtil {
     }
 
     @Override
-    @Observed(name = "validate-token", contextualName = "access-token")
+    @WithSpan(value = "validate-token - access-token")
     public Boolean validateToken(String token) {
         log.debug("Validating access token: {}", token);
         if (!token.isEmpty()) {
@@ -48,24 +49,25 @@ public class AccessTokenUtil implements JwtUtil {
     }
 
     @Override
-    @Observed(name = "get-expires-at", contextualName = "access-token")
+    @WithSpan(value = "get-expires-at - access-token")
     public Date getExpiresAt(String token) {
         Date issueTime = this.extractAllClaims(token).getExpiration();
         return issueTime;
     }
 
     @Override
-    @Observed(name = "get-username", contextualName = "access-token")
+    @WithSpan(value = "get-username - access-token")
     public String getUsername(String token) {
         return extractAllClaims(token).getSubject();
     }
 
     @Override
-    @Observed(name = "get-device-id", contextualName = "access-token")
+    @WithSpan(value = "get-device-id - access-token")
     public UUID getDeviceId(String token) {
         return UUID.fromString((String) extractAllClaims(token).getOrDefault("deviceId", null));
     }
 
+    @WithSpan(value = "get signing key - access-token")
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(ACCESS_SECRET_KEY.getBytes());
     }
@@ -73,6 +75,7 @@ public class AccessTokenUtil implements JwtUtil {
     // ? 'long', not 'Long' is used for compatibility with int because access key
     // ? expiration will fall in range of int
     // ? but refresh key expiration may overflow int boundary
+    @WithSpan(value = "create token - access-token")
     private String createToken(String subject, Map<String, Object> claims, long expiration) {
         long currentTimeStamp = System.currentTimeMillis();
         return Jwts.builder()
@@ -87,7 +90,8 @@ public class AccessTokenUtil implements JwtUtil {
 
     }
 
-    private Claims extractAllClaims(String token) {
+    @WithSpan(value = "extract all claims - access-token")
+    private Claims extractAllClaims(String token) throws ExpiredJwtException {
         return Jwts.parser()
                 .verifyWith(this.getSigningKey())
                 .build()

@@ -14,7 +14,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 
 @Component
 public class RefreshTokenUtil implements JwtUtil {
@@ -26,7 +26,7 @@ public class RefreshTokenUtil implements JwtUtil {
     private long SHORT_TERM_EXPIRY;
 
     @Override
-    @Observed(name = "generate-token", contextualName = "refresh-token", lowCardinalityKeyValues = { "tenure", "long" })
+    @WithSpan(value = "generate-token - refresh-token (long term)")
     public String generateToken(String username, UUID deviceId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("deviceId", deviceId);
@@ -34,8 +34,7 @@ public class RefreshTokenUtil implements JwtUtil {
         return createToken(username, claims, LONG_TERM_EXPIRY);
     }
 
-    @Observed(name = "generate-token", contextualName = "refresh-token", lowCardinalityKeyValues = { "tenure",
-            "short" })
+    @WithSpan(value = "generate-token - refresh-token (short term)")
     public String generateTokenShortTerm(String username, UUID deviceId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("deviceId", deviceId);
@@ -44,31 +43,32 @@ public class RefreshTokenUtil implements JwtUtil {
     }
 
     @Override
-    @Observed(name = "validate-token", contextualName = "refresh-token")
+    @WithSpan(value = "validate-token - refresh-token")
     public Boolean validateToken(String token) {
         Date expirationTime = this.extractAllClaims(token).getExpiration();
         return !expirationTime.before(new Date());
     }
 
     @Override
-    @Observed(name = "get-expires-at", contextualName = "refresh-token")
+    @WithSpan(value = "get-expires-at - refresh-token")
     public Date getExpiresAt(String token) {
         Date issueTime = this.extractAllClaims(token).getExpiration();
         return issueTime;
     }
 
     @Override
-    @Observed(name = "get-username", contextualName = "refresh-token")
+    @WithSpan(value = "get-username - refresh-token")
     public String getUsername(String token) {
         return this.extractAllClaims(token).getSubject();
     }
 
     @Override
-    @Observed(name = "get-device-id", contextualName = "refresh-token")
+    @WithSpan(value = "get-device-id - refresh-token")
     public UUID getDeviceId(String token) {
         return UUID.fromString((String) extractAllClaims(token).getOrDefault("deviceId", null));
     }
 
+    @WithSpan(value = "get signing key - ")
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(REFRESH_SECRET_KEY.getBytes());
     }
@@ -76,6 +76,7 @@ public class RefreshTokenUtil implements JwtUtil {
     // ? 'long', not 'Long' is used for compatibility with int because access key
     // ? expiration will fall in range of int
     // ? but refresh key expiration may overflow int boundary
+    @WithSpan(value = "create token - refresh-token")
     private String createToken(String subject, Map<String, Object> claims, long expiration) {
         long currentTimeStamp = System.currentTimeMillis();
         return Jwts.builder()
@@ -90,6 +91,7 @@ public class RefreshTokenUtil implements JwtUtil {
 
     }
 
+    @WithSpan(value = "extract all claims - refresh-token")
     private Claims extractAllClaims(String token) throws ExpiredJwtException {
         return Jwts.parser()
                 .verifyWith(this.getSigningKey())
