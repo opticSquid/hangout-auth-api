@@ -8,7 +8,7 @@ import com.hangout.core.auth_api.dto.request.ExistingUserCreds;
 import com.hangout.core.auth_api.dto.response.AuthResponse;
 import com.hangout.core.auth_api.dto.response.DefaultResponse;
 
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,25 +24,25 @@ public class AccessService {
     @Autowired
     private TrustDeviceService trustDeviceService;
 
-    @Observed(name = "login", contextualName = "service")
+    @WithSpan(value = "login service - wrapper service")
     @Transactional
     public AuthResponse login(ExistingUserCreds userCreds, DeviceDetails deviceDetails) {
         return this.loginService.login(userCreds, deviceDetails);
     }
 
-    @Observed(name = "renew-token", contextualName = "service")
+    @WithSpan(value = "renew-token service - wrapper service")
     @Transactional
     public AuthResponse renewToken(String refreshToken, DeviceDetails deviceDetails) {
         return this.renewTokenService.renewToken(refreshToken, deviceDetails);
 
     }
 
-    @Observed(name = "logout", contextualName = "service")
+    @WithSpan(value = "logout service - wrapper service")
     public DefaultResponse logout(String accessToken, DeviceDetails deviceDetails) {
         return this.logoutService.logout(accessToken, deviceDetails);
     }
 
-    @Observed(name = "trust-device", contextualName = "service")
+    @WithSpan(value = "trust-device service - wrapper service")
     public AuthResponse trustDevice(String accessToken, DeviceDetails deviceDetails) {
         return this.trustDeviceService.trustDevice(accessToken, deviceDetails);
     }

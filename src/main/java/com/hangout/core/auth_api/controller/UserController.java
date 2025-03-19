@@ -17,7 +17,8 @@ import com.hangout.core.auth_api.service.AccessService;
 import com.hangout.core.auth_api.service.UserDetailsServiceImpl;
 import com.hangout.core.auth_api.utils.DeviceUtil;
 
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,7 +35,7 @@ public class UserController {
 	private AccessService accessService;
 
 	@PostMapping("/trust-device")
-	@Observed(name = "trust-device", contextualName = "controller")
+	@WithSpan(kind = SpanKind.SERVER, value = "trust-device controller")
 	@Operation(summary = "update device details to trust the current device and unlock all functionalities")
 	public ResponseEntity<AuthResponse> trustDevice(@RequestHeader("Authorization") String accessToken,
 			HttpServletRequest request) {
@@ -44,7 +45,7 @@ public class UserController {
 	}
 
 	@DeleteMapping("/logout")
-	@Observed(name = "logout", contextualName = "controller")
+	@WithSpan(kind = SpanKind.SERVER, value = "logout controller")
 	@Operation(summary = "logout of an active session")
 	public ResponseEntity<DefaultResponse> logout(@RequestHeader("Authorization") String accessToken,
 			HttpServletRequest req) {
@@ -54,7 +55,7 @@ public class UserController {
 	}
 
 	@DeleteMapping
-	@Observed(name = "delete-account", contextualName = "controller")
+	@WithSpan(kind = SpanKind.SERVER, value = "delete-account controller")
 	@Operation(summary = "remove user account permanently")
 	public ResponseEntity<DefaultResponse> deleteUser() {
 		try {

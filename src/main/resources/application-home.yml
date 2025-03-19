@@ -23,26 +23,10 @@ logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 
-# All traces should be sent to latency analysis tool
-management:
-  otlp:
-    metrics:
-      export:
-        url: http://localhost:4318/v1/metrics
-  tracing:
-    sampling:
-      probability: 1.0
-  endpoints:
-    web:
-      exposure:
-        include: prometheus, health
-  # For Exemplars to work we need histogram buckets
-  metrics:
-    distribution:
-      percentiles-histogram:
-        http:
-          server:
-            requests: true
+otel:
+  exporter:
+    otlp:
+      endpoint: http://localhost:4318
 
 hangout:
   jwt:
@@ -57,10 +41,6 @@ hangout:
     url: http://localhost:5012
   ip-api:
     url: http://ip-api.com
-  otel-collector:
-    url: http://localhost:4318
-  log:
-    path: /home/soumalya/Development/Hangout/core-services/hangout-auth-api/logs
   internal-services:
     origin: http://localhost:5012, http://localhost:5013
   client:

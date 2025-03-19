@@ -36,19 +36,14 @@ logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 
+# All traces should be sent to latency analysis tool
 management:
-  # All traces should be sent to latency analysis tool
   tracing:
     sampling:
       probability: 1.0
   otlp:
-    # configures the endpoint to send OTLP metrics. (Does not support GRPC)
-    metrics:
-      export:
-        url: ${OTEL_COLLECTOR}/v1/metrics
     tracing:
       compression: gzip
-
   endpoints:
     web:
       exposure:
@@ -60,6 +55,15 @@ management:
         http:
           server:
             requests: true
+
+otel:
+  exporter:
+    otlp:
+      endpoint: ${OTEL_COLLECTOR}
+  instrumentation:
+    micrometer:
+      enabled: true
+
 springdoc:
   api-docs:
     path: /api-docs
@@ -83,10 +87,6 @@ hangout:
     url: ${NOTIFICATION_SERVICE}
   ip-api:
     url: ${IP_API_URL}
-  otel-collector:
-    url: ${OTEL_COLLECTOR}
-  log:
-    path: ${LOG_DIR}
   internal-services:
     origin: ${INTERNAL_SERVICES_ORIGIN}
   client:

@@ -30,7 +30,7 @@ import com.hangout.core.auth_api.utils.DeviceUtil;
 import com.hangout.core.auth_api.utils.JwtUtil;
 import com.hangout.core.auth_api.utils.RefreshTokenUtil;
 
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,7 +54,7 @@ class LoginService {
     @Autowired
     private DeviceUtil deviceUtil;
 
-    @Observed(name = "login", contextualName = "login-service")
+    @WithSpan(value = "login service")
     @Transactional
     public AuthResponse login(ExistingUserCreds userCreds, DeviceDetails deviceDetails) {
         log.debug("authenticating user");
@@ -90,11 +90,13 @@ class LoginService {
         }
     }
 
+    @WithSpan(value = "authenticate user")
     private Authentication autheticateUser(ExistingUserCreds userCreds) {
         return authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(userCreds.username(), userCreds.password()));
     }
 
+    @WithSpan(value = "check current device against user's known devices")
     private Device getUserDevice(DeviceDetails deviceDetails, User user) {
         // Build the current device profile
         Device currentDevice = deviceUtil.buildDeviceProfile(deviceDetails, user);
@@ -132,6 +134,7 @@ class LoginService {
         throw new UnIndentifiedDeviceException("Device was never used by user");
     }
 
+    @WithSpan(value = "user logging in to trusted device")
     private AuthResponse userLoggingInToTrustedDevice(AccessRecord session,
             Device trustedDevice, User user) {
         Action action = session.getUserAction();
@@ -149,6 +152,7 @@ class LoginService {
         }
     }
 
+    @WithSpan(value = "user logging in after previous refresh token expired")
     private AuthResponse loginAfterRefreshTokenExpired(Device trustedDevice, User user) {
         String accessJwt = this.accessTokenUtil.generateToken(user.getUsername(), trustedDevice.getDeviceId());
         Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
@@ -164,6 +168,7 @@ class LoginService {
         return new AuthResponse(accessJwt, refreshJwt, user.getUserId(), "success");
     }
 
+    @WithSpan(value = "user logging in after manual logout")
     private AuthResponse loginAfterUserManuallyLoggedOut(
             Device trustedDevice, User user) {
         log.info("user had previously logged out of a session in this current device");
@@ -181,6 +186,7 @@ class LoginService {
         return new AuthResponse(accessJwt, refreshJwt, user.getUserId(), "success");
     }
 
+    @WithSpan(value = "user logging in an untrusted device")
     private AuthResponse userLoggingInAnUntrustedDevice(Device untrustedDevice, User user) {
         String accessJwt = this.accessTokenUtil.generateToken(user.getUsername(), untrustedDevice.getDeviceId());
         Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
@@ -199,6 +205,7 @@ class LoginService {
         return new AuthResponse(accessJwt, shortTermRefreshJwt, user.getUserId(), "untrusted device login");
     }
 
+    @WithSpan(value = "user logging-in in a new device")
     private AuthResponse userLoggingInAnUnIdentifiedDevice(Device unIdentifiedDevice, User user) {
         // saving new Device
         unIdentifiedDevice = this.deviceRepo.save(unIdentifiedDevice);

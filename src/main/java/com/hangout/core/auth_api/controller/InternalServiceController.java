@@ -12,7 +12,8 @@ import com.hangout.core.auth_api.dto.request.PublicUserDetails;
 import com.hangout.core.auth_api.dto.request.UserValidationRequest;
 import com.hangout.core.auth_api.service.InternalAccessService;
 
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class InternalServiceController {
     private InternalAccessService accessService;
 
     @PostMapping("/validate")
-    @Observed(name = "validate-token", contextualName = "controller")
+    @WithSpan(kind = SpanKind.SERVER, value = "validate-token controller")
     @Operation(summary = "check validity of access token")
     public ResponseEntity<PublicUserDetails> validateAccessToken(@RequestBody UserValidationRequest validationRequest) {
         return new ResponseEntity<>(

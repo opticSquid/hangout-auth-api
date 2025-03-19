@@ -14,4 +14,4 @@ WORKDIR /app
 
 COPY --from=builder /usr/src/app/target/hangout-auth-api-2.1.5.jar .
 
-CMD ["java", "-jar", "hangout-auth-api-2.1.5.jar"]
+CMD ["java", "-jar", "hangout-auth-api-2.2.0.jar"]

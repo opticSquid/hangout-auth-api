@@ -19,7 +19,8 @@ import com.hangout.core.auth_api.service.AccessService;
 import com.hangout.core.auth_api.service.UserDetailsServiceImpl;
 import com.hangout.core.auth_api.utils.DeviceUtil;
 
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,7 +39,7 @@ public class PublicController {
     private AccessService accessService;
 
     @PostMapping("/signup")
-    @Observed(name = "signup", contextualName = "controller")
+    @WithSpan(kind = SpanKind.SERVER, value = "signup controller")
     @Operation(summary = "Add new user")
     public ResponseEntity<DefaultResponse> signup(@RequestBody NewUser user) {
         try {
@@ -50,7 +51,7 @@ public class PublicController {
     }
 
     @GetMapping("/verify")
-    @Observed(name = "verify-email", contextualName = "controller")
+    @WithSpan(kind = SpanKind.SERVER, value = "verify-email controller")
     @Operation(summary = "verify new user's email")
     public String verifyAccount(@RequestParam String token) {
         log.debug("token received for verification: {}", token);
@@ -58,7 +59,7 @@ public class PublicController {
     }
 
     @PostMapping("/login")
-    @Observed(name = "login", contextualName = "controller")
+    @WithSpan(kind = SpanKind.SERVER, value = "login controller")
     @Operation(summary = "login exisiting user")
     public ResponseEntity<AuthResponse> login(@RequestBody ExistingUserCreds user, HttpServletRequest request) {
         AuthResponse res = this.accessService.login(user, DeviceUtil.getDeviceDetails(request));
@@ -72,7 +73,7 @@ public class PublicController {
     }
 
     @PostMapping("/renew")
-    @Observed(name = "renew-token", contextualName = "controller")
+    @WithSpan(kind = SpanKind.SERVER, value = "renew-token controller")
     @Operation(summary = "renew access token given a refresh token if you have an active session")
     public ResponseEntity<AuthResponse> renewToken(@RequestBody RenewToken tokenReq, HttpServletRequest request) {
         AuthResponse authResponse = this.accessService.renewToken(tokenReq.token(),

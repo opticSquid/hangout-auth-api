@@ -16,9 +16,9 @@ import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
-import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
 import com.hangout.core.auth_api.exceptions.DeviceProfileException;
 import com.hangout.core.auth_api.exceptions.JwtNotValidException;
+import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
 import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
 import com.hangout.core.auth_api.exceptions.UserNotFoundException;
 import com.hangout.core.auth_api.repository.AccessRecordRepo;
@@ -28,7 +28,7 @@ import com.hangout.core.auth_api.utils.DeviceUtil;
 import com.hangout.core.auth_api.utils.JwtUtil;
 import com.hangout.core.auth_api.utils.RefreshTokenUtil;
 
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,8 +50,7 @@ class RenewTokenService {
     @Autowired
     private DeviceRepo deviceRepo;
 
-    @Observed(name = "renew-token", contextualName = "renew-token-service", lowCardinalityKeyValues = { "service",
-            "user" })
+    @WithSpan(value = "renew token service")
     @Transactional
     public AuthResponse renewToken(String refreshToken, DeviceDetails deviceDetails) {
         log.info("refreshToken: {}", refreshToken, deviceDetails);
@@ -95,6 +94,7 @@ class RenewTokenService {
         return new AuthResponse(newAccessToken, refreshToken, user.getUserId(), resposeMessage);
     }
 
+    @WithSpan(value = "validate refresh token")
     private Boolean validateRefreshToken(String refreshToken) {
         if (this.refreshTokenUtil.validateToken(refreshToken)) {
             return true;
@@ -103,6 +103,7 @@ class RenewTokenService {
         }
     }
 
+    @WithSpan(value = "validate user is enabled in database")
     private User findEnabledUserFromDb(String username) {
         Optional<User> user = this.userRepo.findByUserName(username);
         if (user.isPresent() && user.get().isEnabled()) {
@@ -112,6 +113,7 @@ class RenewTokenService {
         }
     }
 
+    @WithSpan(value = "check the latest record of the session and verify it is an active session")
     private AccessRecord getLatestAccessRecordAndValidateActiveSession(BigInteger userId, UUID deviceId) {
         log.debug("userId: {}, deviceId: {}", userId, deviceId);
         Optional<AccessRecord> latestAccessRecord = this.accessRecordRepo.getLatestAccessRecord(userId, deviceId);
@@ -124,6 +126,7 @@ class RenewTokenService {
         }
     }
 
+    @WithSpan(value = "generate new token if the previous one had expired")
     private String generateNewAccessTokenIfExpired(String accessToken, ZonedDateTime accessTokenExpiryTime,
             String username, UUID deviceId) {
         if (accessTokenExpiryTime.isBefore(ZonedDateTime.now(ZoneOffset.UTC))) {
@@ -133,6 +136,7 @@ class RenewTokenService {
         }
     }
 
+    @WithSpan(value = "check if the device used to renew token same as used for login")
     private Device checkIfTheDeviceIsSameAsUsedForLogin(UUID incomingDeviceId, DeviceDetails incomingDeviceDetails,
             User user) {
         // Build the device profile based on incoming details

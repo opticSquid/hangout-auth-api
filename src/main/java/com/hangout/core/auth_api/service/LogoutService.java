@@ -13,16 +13,16 @@ import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
 import com.hangout.core.auth_api.entity.User;
-import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
 import com.hangout.core.auth_api.exceptions.DeviceProfileException;
 import com.hangout.core.auth_api.exceptions.UnIndentifiedDeviceException;
+import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
 import com.hangout.core.auth_api.repository.AccessRecordRepo;
 import com.hangout.core.auth_api.repository.DeviceRepo;
 import com.hangout.core.auth_api.repository.UserRepo;
 import com.hangout.core.auth_api.utils.DeviceUtil;
 import com.hangout.core.auth_api.utils.JwtUtil;
 
-import io.micrometer.observation.annotation.Observed;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -40,7 +40,7 @@ class LogoutService {
     @Autowired
     private DeviceRepo deviceRepo;
 
-    @Observed(name = "logout", contextualName = "service")
+    @WithSpan(value = "logout service")
     public DefaultResponse logout(String accessToken, DeviceDetails deviceDetails) {
         String userName = this.accessTokenUtil.getUsername(accessToken);
         UUID deviceId = this.accessTokenUtil.getDeviceId(accessToken);
@@ -57,6 +57,7 @@ class LogoutService {
         }
     }
 
+    @WithSpan(value = "check if the logout request came from the same device as used for login")
     private Device checkIfTheDeviceIsSameAsUsedForLogin(UUID incomingDeviceId,
             DeviceDetails incomingDeviceDetails,
             User user) {
