@@ -93,9 +93,11 @@ public class SecurityConfiguration {
 		internalServiceConfiguration.setAllowedOriginPatterns(allowedInternalOriginsList);
 		clientConfiguration.setAllowedHeaders(Arrays.asList("*"));
 		internalServiceConfiguration.setAllowedHeaders(Arrays.asList("*"));
-		clientConfiguration.setAllowedMethods(Arrays.asList(HttpMethod.POST.name(), HttpMethod.OPTIONS.name()));
+		clientConfiguration
+				.setAllowedMethods(Arrays.asList(HttpMethod.OPTIONS.name(), HttpMethod.POST.name(), HttpMethod.DELETE
+						.name()));
 		internalServiceConfiguration
-				.setAllowedMethods(Arrays.asList(HttpMethod.POST.name(), HttpMethod.OPTIONS.name()));
+				.setAllowedMethods(Arrays.asList(HttpMethod.OPTIONS.name(), HttpMethod.POST.name()));
 		clientConfiguration.setAllowCredentials(false);
 		internalServiceConfiguration.setAllowCredentials(false);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
