@@ -1,4 +1,4 @@
-name: Docker Image CD
+name: CD Pipeline
 on:
   release:
     types: [published]
