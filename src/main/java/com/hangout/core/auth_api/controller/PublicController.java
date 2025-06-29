@@ -1,6 +1,7 @@
 package com.hangout.core.auth_api.controller;
 
 import java.util.Date;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,12 +15,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hangout.core.auth_api.config.Constants;
 import com.hangout.core.auth_api.dto.internal.AuthResult;
 import com.hangout.core.auth_api.dto.request.ExistingUserCreds;
 import com.hangout.core.auth_api.dto.request.NewUser;
-import com.hangout.core.auth_api.dto.request.RenewToken;
 import com.hangout.core.auth_api.dto.response.AuthResponse;
 import com.hangout.core.auth_api.dto.response.DefaultResponse;
+import com.hangout.core.auth_api.exceptions.UnauthorizedAccessException;
 import com.hangout.core.auth_api.service.AccessService;
 import com.hangout.core.auth_api.service.UserDetailsServiceImpl;
 import com.hangout.core.auth_api.utils.DeviceUtil;
@@ -100,9 +102,12 @@ public class PublicController {
     @PostMapping("/renew")
     @WithSpan(kind = SpanKind.SERVER, value = "renew-token controller")
     @Operation(summary = "renew access token given a refresh token if you have an active session")
-    public ResponseEntity<AuthResponse> renewToken(@RequestBody RenewToken tokenReq, HttpServletRequest request) {
-        AuthResult authResult = this.accessService.renewToken(tokenReq.token(),
-                DeviceUtil.getDeviceDetails(request));
+    public ResponseEntity<AuthResponse> renewToken(HttpServletRequest request) {
+        Optional<String> refreshToken = extractRefreshToken(request);
+        if (refreshToken.isEmpty()) {
+            throw new UnauthorizedAccessException("No cookie present in request");
+        }
+        AuthResult authResult = this.accessService.renewToken(refreshToken.get(), DeviceUtil.getDeviceDetails(request));
         return new ResponseEntity<>(createResponse(authResult),
                 HttpStatus.OK);
     }
@@ -121,7 +126,7 @@ public class PublicController {
     }
 
     private Cookie createCookie(String refreshToken) {
-        Cookie cookie = new Cookie("refresh-token", refreshToken);
+        Cookie cookie = new Cookie(Constants.REFRESH_TOKEN, refreshToken);
         cookie.setHttpOnly(true);
         cookie.setPath("/v1/auth");
         cookie.setMaxAge(calculateMaxAgeFromDate(refreshTokenUtil.getExpiresAt(refreshToken)));
@@ -130,5 +135,21 @@ public class PublicController {
 
     private AuthResponse createResponse(AuthResult authResult) {
         return new AuthResponse(authResult.message(), authResult.accessToken());
+    }
+
+    private Optional<String> extractRefreshToken(HttpServletRequest request) {
+        String tokenValue = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (Constants.REFRESH_TOKEN.equals(cookie.getName())) {
+                    tokenValue = cookie.getValue();
+                    break;
+                }
+            }
+        } else {
+            return Optional.empty();
+        }
+        return tokenValue == null ? Optional.empty() : Optional.of(tokenValue);
     }
 }
