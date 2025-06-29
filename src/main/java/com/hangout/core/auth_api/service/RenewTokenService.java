@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import com.hangout.core.auth_api.dto.internal.AuthResult;
 import com.hangout.core.auth_api.dto.request.DeviceDetails;
-import com.hangout.core.auth_api.dto.response.AuthResponse;
 import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
@@ -52,7 +52,7 @@ class RenewTokenService {
 
     @WithSpan(value = "renew token service")
     @Transactional
-    public AuthResponse renewToken(String refreshToken, DeviceDetails deviceDetails) {
+    public AuthResult renewToken(String refreshToken, DeviceDetails deviceDetails) {
         log.info("refreshToken: {}", refreshToken, deviceDetails);
         validateRefreshToken(refreshToken);
         String username = this.refreshTokenUtil.getUsername(refreshToken);
@@ -91,7 +91,7 @@ class RenewTokenService {
         } else {
             resposeMessage = "untrusted device token renew";
         }
-        return new AuthResponse(newAccessToken, refreshToken, user.getUserId(), resposeMessage);
+        return new AuthResult(newAccessToken, refreshToken, user.getUserId(), resposeMessage);
     }
 
     @WithSpan(value = "validate refresh token")

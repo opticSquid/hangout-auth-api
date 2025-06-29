@@ -27,14 +27,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler(JwtNotValidException.class)
 	public ProblemDetail exceptionHandler(JwtNotValidException ex) {
-		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
 		problem.setTitle("Token is invalid");
 		return problem;
 	}
 
 	@ExceptionHandler(ExpiredJwtException.class)
 	public ProblemDetail exceptionHandler(ExpiredJwtException ex) {
-		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
 		problem.setTitle("Token has expired");
 		return problem;
 	}
