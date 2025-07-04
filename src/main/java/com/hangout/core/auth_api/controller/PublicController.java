@@ -73,7 +73,7 @@ public class PublicController {
         return new ResponseEntity<>(new DefaultResponse(res), HttpStatus.OK);
     }
 
-    @PostMapping("/trust-device")
+    @GetMapping("/trust-device")
     @WithSpan(kind = SpanKind.SERVER, value = "trust-device controller")
     @Operation(summary = "update device details to trust the current device and unlock all functionalities")
     public ResponseEntity<AuthResponse> trustDevice(@RequestHeader("Authorization") String accessToken,
@@ -88,8 +88,11 @@ public class PublicController {
     @PostMapping("/login")
     @WithSpan(kind = SpanKind.SERVER, value = "login controller")
     @Operation(summary = "login exisiting user")
-    public ResponseEntity<AuthResponse> login(@RequestBody ExistingUserCreds user, HttpServletRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody ExistingUserCreds user, HttpServletRequest request,
+            HttpServletResponse response) {
         AuthResult authResult = this.accessService.login(user, DeviceUtil.getDeviceDetails(request));
+        Cookie cookie = createCookie(authResult.refreshToken());
+        response.addCookie(cookie);
         if (authResult.message().equals("success")) {
             return new ResponseEntity<>(createResponse(authResult), HttpStatus.OK);
         } else if (authResult.message().equals("user blocked")) {
@@ -99,7 +102,7 @@ public class PublicController {
         }
     }
 
-    @PostMapping("/renew")
+    @GetMapping("/renew")
     @WithSpan(kind = SpanKind.SERVER, value = "renew-token controller")
     @Operation(summary = "renew access token given a refresh token if you have an active session")
     public ResponseEntity<AuthResponse> renewToken(HttpServletRequest request) {
@@ -128,7 +131,7 @@ public class PublicController {
     private Cookie createCookie(String refreshToken) {
         Cookie cookie = new Cookie(Constants.REFRESH_TOKEN, refreshToken);
         cookie.setHttpOnly(true);
-        cookie.setPath("/v1/auth");
+        cookie.setPath("/auth-api/v1/auth/renew");
         cookie.setMaxAge(calculateMaxAgeFromDate(refreshTokenUtil.getExpiresAt(refreshToken)));
         return cookie;
     }
