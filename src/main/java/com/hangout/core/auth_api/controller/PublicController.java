@@ -5,7 +5,9 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,7 +35,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,28 +78,31 @@ public class PublicController {
     @WithSpan(kind = SpanKind.SERVER, value = "trust-device controller")
     @Operation(summary = "update device details to trust the current device and unlock all functionalities")
     public ResponseEntity<AuthResponse> trustDevice(@RequestHeader("Authorization") String accessToken,
-            HttpServletRequest request, HttpServletResponse response) {
+            HttpServletRequest request) {
         AuthResult authResult = this.accessService.trustDevice(accessToken.substring(7),
                 DeviceUtil.getDeviceDetails(request));
-        Cookie cookie = createCookie(authResult.refreshToken());
-        response.addCookie(cookie);
-        return new ResponseEntity<>(createResponse(authResult), HttpStatus.OK);
+        ResponseCookie cookie = createCookie(authResult.refreshToken());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(createResponse(authResult));
     }
 
     @PostMapping("/login")
     @WithSpan(kind = SpanKind.SERVER, value = "login controller")
     @Operation(summary = "login exisiting user")
-    public ResponseEntity<AuthResponse> login(@RequestBody ExistingUserCreds user, HttpServletRequest request,
-            HttpServletResponse response) {
+    public ResponseEntity<AuthResponse> login(@RequestBody ExistingUserCreds user, HttpServletRequest request) {
         AuthResult authResult = this.accessService.login(user, DeviceUtil.getDeviceDetails(request));
-        Cookie cookie = createCookie(authResult.refreshToken());
-        response.addCookie(cookie);
+        ResponseCookie cookie = createCookie(authResult.refreshToken());
         if (authResult.message().equals("success")) {
-            return new ResponseEntity<>(createResponse(authResult), HttpStatus.OK);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(createResponse(authResult));
         } else if (authResult.message().equals("user blocked")) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         } else {
-            return new ResponseEntity<>(createResponse(authResult), HttpStatus.TEMPORARY_REDIRECT);
+            return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(createResponse(authResult));
         }
     }
 
@@ -106,7 +110,7 @@ public class PublicController {
     @WithSpan(kind = SpanKind.SERVER, value = "renew-token controller")
     @Operation(summary = "renew access token given a refresh token if you have an active session")
     public ResponseEntity<AuthResponse> renewToken(HttpServletRequest request) {
-        Optional<String> refreshToken = extractRefreshToken(request);
+        Optional<String> refreshToken = extractRefreshTokenFromCookie(request);
         if (refreshToken.isEmpty()) {
             throw new UnauthorizedAccessException("No cookie present in request");
         }
@@ -128,11 +132,13 @@ public class PublicController {
         return (int) durationInSeconds;
     }
 
-    private Cookie createCookie(String refreshToken) {
-        Cookie cookie = new Cookie(Constants.REFRESH_TOKEN, refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/auth-api/v1/auth/renew");
-        cookie.setMaxAge(calculateMaxAgeFromDate(refreshTokenUtil.getExpiresAt(refreshToken)));
+    private ResponseCookie createCookie(String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from(Constants.REFRESH_TOKEN, refreshToken)
+                .maxAge(calculateMaxAgeFromDate(refreshTokenUtil.getExpiresAt(refreshToken)))
+                .httpOnly(true)
+                .sameSite("Strict")
+                .path("/auth-api/v1/auth/renew")
+                .build();
         return cookie;
     }
 
@@ -140,7 +146,7 @@ public class PublicController {
         return new AuthResponse(authResult.message(), authResult.accessToken());
     }
 
-    private Optional<String> extractRefreshToken(HttpServletRequest request) {
+    private Optional<String> extractRefreshTokenFromCookie(HttpServletRequest request) {
         String tokenValue = null;
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
