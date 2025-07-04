@@ -3,9 +3,9 @@ package com.hangout.core.auth_api.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.hangout.core.auth_api.dto.internal.AuthResult;
 import com.hangout.core.auth_api.dto.request.DeviceDetails;
 import com.hangout.core.auth_api.dto.request.ExistingUserCreds;
-import com.hangout.core.auth_api.dto.response.AuthResponse;
 import com.hangout.core.auth_api.dto.response.DefaultResponse;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
@@ -26,13 +26,13 @@ public class AccessService {
 
     @WithSpan(value = "login service - wrapper service")
     @Transactional
-    public AuthResponse login(ExistingUserCreds userCreds, DeviceDetails deviceDetails) {
+    public AuthResult login(ExistingUserCreds userCreds, DeviceDetails deviceDetails) {
         return this.loginService.login(userCreds, deviceDetails);
     }
 
     @WithSpan(value = "renew-token service - wrapper service")
     @Transactional
-    public AuthResponse renewToken(String refreshToken, DeviceDetails deviceDetails) {
+    public AuthResult renewToken(String refreshToken, DeviceDetails deviceDetails) {
         return this.renewTokenService.renewToken(refreshToken, deviceDetails);
 
     }
@@ -43,7 +43,7 @@ public class AccessService {
     }
 
     @WithSpan(value = "trust-device service - wrapper service")
-    public AuthResponse trustDevice(String accessToken, DeviceDetails deviceDetails) {
+    public AuthResult trustDevice(String accessToken, DeviceDetails deviceDetails) {
         return this.trustDeviceService.trustDevice(accessToken, deviceDetails);
     }
 }

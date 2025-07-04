@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import com.hangout.core.auth_api.dto.internal.AuthResult;
 import com.hangout.core.auth_api.dto.request.DeviceDetails;
-import com.hangout.core.auth_api.dto.response.AuthResponse;
 import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
@@ -49,7 +49,7 @@ class TrustDeviceService {
 
     @Transactional
     @WithSpan(value = "trust device service")
-    public AuthResponse trustDevice(String accessToken, DeviceDetails deviceDetails) {
+    public AuthResult trustDevice(String accessToken, DeviceDetails deviceDetails) {
         log.info("accessToken: {}", accessToken, deviceDetails);
         String username = this.accessTokenUtil.getUsername(accessToken);
         UUID deviceId = this.accessTokenUtil.getDeviceId(accessToken);
@@ -58,7 +58,7 @@ class TrustDeviceService {
         if (device.isTrusted()) {
             throw new AlreadyTrustedDeviceException("Device is already trusted by the user.");
         } else {
-            AuthResponse issuedTokens = issueLongTermTokens(user.getUsername(), deviceId, user.getUserId());
+            AuthResult issuedTokens = issueLongTermTokens(user.getUsername(), deviceId, user.getUserId());
             Date accessTokenExpiryTime = this.accessTokenUtil.getExpiresAt(issuedTokens.accessToken());
             Date refreshTokenExpiryTime = this.refreshTokenUtil.getExpiresAt(issuedTokens.refreshToken());
             AccessRecord accessRecord = this.accessRecordRepo
@@ -115,9 +115,9 @@ class TrustDeviceService {
     }
 
     @WithSpan(value = "issue long term tokens to a trusted device")
-    private AuthResponse issueLongTermTokens(String username, UUID deviceId, BigInteger userId) {
+    private AuthResult issueLongTermTokens(String username, UUID deviceId, BigInteger userId) {
         String accessToken = this.accessTokenUtil.generateToken(username, deviceId);
         String refreshToken = this.refreshTokenUtil.generateToken(username, deviceId);
-        return new AuthResponse(accessToken, refreshToken, userId, "success");
+        return new AuthResult(accessToken, refreshToken, userId, "success");
     }
 }

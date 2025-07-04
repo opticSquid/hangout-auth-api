@@ -13,9 +13,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.hangout.core.auth_api.dto.internal.AuthResult;
 import com.hangout.core.auth_api.dto.request.DeviceDetails;
 import com.hangout.core.auth_api.dto.request.ExistingUserCreds;
-import com.hangout.core.auth_api.dto.response.AuthResponse;
 import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
 import com.hangout.core.auth_api.entity.Device;
@@ -56,7 +56,7 @@ class LoginService {
 
     @WithSpan(value = "login service")
     @Transactional
-    public AuthResponse login(ExistingUserCreds userCreds, DeviceDetails deviceDetails) {
+    public AuthResult login(ExistingUserCreds userCreds, DeviceDetails deviceDetails) {
         log.debug("authenticating user");
         Authentication auth = autheticateUser(userCreds);
         String username = auth.getName();
@@ -65,7 +65,7 @@ class LoginService {
         log.debug("user id from db: {}", user.getUserId());
         // if user is not enabled, do not allow login
         if (!user.isEnabled()) {
-            return new AuthResponse(null, null, null, "user not enabled");
+            return new AuthResult(null, null, null, "user not enabled");
         } else {
             // user is enabled
             // check if the current device is a trusted device or not
@@ -135,7 +135,7 @@ class LoginService {
     }
 
     @WithSpan(value = "user logging in to trusted device")
-    private AuthResponse userLoggingInToTrustedDevice(AccessRecord session,
+    private AuthResult userLoggingInToTrustedDevice(AccessRecord session,
             Device trustedDevice, User user) {
         Action action = session.getUserAction();
         ZonedDateTime refreshTokenExpiryTime = session.getRefreshTokenExpiryTime();
@@ -153,7 +153,7 @@ class LoginService {
     }
 
     @WithSpan(value = "user logging in after previous refresh token expired")
-    private AuthResponse loginAfterRefreshTokenExpired(Device trustedDevice, User user) {
+    private AuthResult loginAfterRefreshTokenExpired(Device trustedDevice, User user) {
         String accessJwt = this.accessTokenUtil.generateToken(user.getUsername(), trustedDevice.getDeviceId());
         Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
         String refreshJwt = this.refreshTokenUtil.generateToken(user.getUsername(), trustedDevice.getDeviceId());
@@ -165,11 +165,11 @@ class LoginService {
         trustedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(trustedDevice);
         this.userRepo.save(user);
-        return new AuthResponse(accessJwt, refreshJwt, user.getUserId(), "success");
+        return new AuthResult(accessJwt, refreshJwt, user.getUserId(), "success");
     }
 
     @WithSpan(value = "user logging in after manual logout")
-    private AuthResponse loginAfterUserManuallyLoggedOut(
+    private AuthResult loginAfterUserManuallyLoggedOut(
             Device trustedDevice, User user) {
         log.info("user had previously logged out of a session in this current device");
         String accessJwt = this.accessTokenUtil.generateToken(user.getUsername(), trustedDevice.getDeviceId());
@@ -183,11 +183,11 @@ class LoginService {
         trustedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(trustedDevice);
         this.userRepo.save(user);
-        return new AuthResponse(accessJwt, refreshJwt, user.getUserId(), "success");
+        return new AuthResult(accessJwt, refreshJwt, user.getUserId(), "success");
     }
 
     @WithSpan(value = "user logging in an untrusted device")
-    private AuthResponse userLoggingInAnUntrustedDevice(Device untrustedDevice, User user) {
+    private AuthResult userLoggingInAnUntrustedDevice(Device untrustedDevice, User user) {
         String accessJwt = this.accessTokenUtil.generateToken(user.getUsername(), untrustedDevice.getDeviceId());
         Date iatAccessToken = this.accessTokenUtil.getExpiresAt(accessJwt);
         String shortTermRefreshJwt = this.refreshTokenUtil.generateTokenShortTerm(user.getUsername(),
@@ -202,11 +202,11 @@ class LoginService {
         untrustedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(untrustedDevice);
         this.userRepo.save(user);
-        return new AuthResponse(accessJwt, shortTermRefreshJwt, user.getUserId(), "untrusted device login");
+        return new AuthResult(accessJwt, shortTermRefreshJwt, user.getUserId(), "untrusted device login");
     }
 
     @WithSpan(value = "user logging-in in a new device")
-    private AuthResponse userLoggingInAnUnIdentifiedDevice(Device unIdentifiedDevice, User user) {
+    private AuthResult userLoggingInAnUnIdentifiedDevice(Device unIdentifiedDevice, User user) {
         // saving new Device
         unIdentifiedDevice = this.deviceRepo.save(unIdentifiedDevice);
         String accessJwt = this.accessTokenUtil.generateToken(user.getUsername(), unIdentifiedDevice.getDeviceId());
@@ -223,6 +223,6 @@ class LoginService {
         unIdentifiedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(unIdentifiedDevice);
         this.userRepo.save(user);
-        return new AuthResponse(accessJwt, shortTermRefreshJwt, user.getUserId(), "untrusted device login");
+        return new AuthResult(accessJwt, shortTermRefreshJwt, user.getUserId(), "untrusted device login");
     }
 }

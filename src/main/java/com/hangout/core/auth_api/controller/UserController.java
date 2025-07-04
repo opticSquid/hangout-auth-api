@@ -6,12 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hangout.core.auth_api.dto.response.AuthResponse;
 import com.hangout.core.auth_api.dto.response.DefaultResponse;
 import com.hangout.core.auth_api.service.AccessService;
 import com.hangout.core.auth_api.service.UserDetailsServiceImpl;
@@ -33,16 +31,6 @@ public class UserController {
 	private UserDetailsServiceImpl userDetailsService;
 	@Autowired
 	private AccessService accessService;
-
-	@PostMapping("/trust-device")
-	@WithSpan(kind = SpanKind.SERVER, value = "trust-device controller")
-	@Operation(summary = "update device details to trust the current device and unlock all functionalities")
-	public ResponseEntity<AuthResponse> trustDevice(@RequestHeader("Authorization") String accessToken,
-			HttpServletRequest request) {
-		AuthResponse response = this.accessService.trustDevice(accessToken.substring(7),
-				DeviceUtil.getDeviceDetails(request));
-		return new ResponseEntity<>(response, HttpStatus.OK);
-	}
 
 	@DeleteMapping("/logout")
 	@WithSpan(kind = SpanKind.SERVER, value = "logout controller")
