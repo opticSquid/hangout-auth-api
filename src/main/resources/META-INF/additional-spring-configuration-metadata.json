@@ -64,6 +64,11 @@
       "name": "hangout.client.origin",
       "type": "java.lang.String",
       "description": "The comma separated list of the origins of the list of user facing clients"
+    },
+    {
+      "name": "hangout.cookie.domain",
+      "type": "java.lang.String",
+      "description": "Domain for the generated cookie"
     }
   ]
 }

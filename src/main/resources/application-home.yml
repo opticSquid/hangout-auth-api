@@ -37,6 +37,8 @@ hangout:
       secret: kTYpg95oeqgnBhfi16DYSe2NT2T6kXPDKGrLeXpSA2rc7Jltt32AtYGPdmsYFoKt0H2_dJj8RPgbP3UGzD6ONSDJOWbbMvSU1MyNDM2xj5ncv2oN1iewNXz6gEyTdeuR3IolmGnPBPFVZR78is6MnS7W7WBpRvQCoaes9l7GhMHf6MhtX4nstm9LkTUx5-MQw4Tg5XTgo82FApVcg1x9hvDno6WTci_gJ9874xsAi5wg9V15cXFTesJ3GJfGf4NTkX9SqqAVG_D08oLOXFAXjvLDYVrl_O_9JMyCBgVEyMV81UMw8v72nYGAfDPy2uH3nTUOTXA4qlijAXOFGxV7kg
       long-term-expiry: 604800000 # 7 daya
       short-term-expiry: 600000 # 10 mins
+  cookie:
+    domain: localhost
   notification-service:
     url: http://localhost:5012
   ip-api:
@@ -44,4 +46,4 @@ hangout:
   internal-services:
     origin: http://localhost:5012, http://localhost:5013
   client:
-    origin: http://localhost:3000
+    origin: http://localhost:5173
