@@ -98,7 +98,7 @@ public class SecurityConfiguration {
 						.name()));
 		internalServiceConfiguration
 				.setAllowedMethods(Arrays.asList(HttpMethod.OPTIONS.name(), HttpMethod.POST.name()));
-		clientConfiguration.setAllowCredentials(false);
+		clientConfiguration.setAllowCredentials(true);
 		internalServiceConfiguration.setAllowCredentials(false);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.setCorsConfigurations(Map.of(

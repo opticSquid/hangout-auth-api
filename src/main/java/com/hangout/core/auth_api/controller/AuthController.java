@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -44,6 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {
+    @Value("${hangout.cookie.domain}")
+    private String cookieDomain;
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
     @Autowired
@@ -136,7 +139,8 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie.from(Constants.REFRESH_TOKEN, refreshToken)
                 .maxAge(calculateMaxAgeFromDate(refreshTokenUtil.getExpiresAt(refreshToken)))
                 .httpOnly(true)
-                .sameSite("Strict")
+                .sameSite("SameSite")
+                .domain(cookieDomain)
                 .path("/auth-api/v1/auth/renew")
                 .build();
         return cookie;

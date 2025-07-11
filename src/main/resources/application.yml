@@ -83,6 +83,8 @@ hangout:
       secret: ${REFRESH_TOKEN_SECRET}
       long-term-expiry: ${REFRESH_TOKEN_LONG_TERM_EXPIRY}
       short-term-expiry: ${REFRESH_TOKEN_SHORT_TERM_EXPIRY}
+  cookie:
+    domain: ${COOKIE_DOMAIN}
   notification-service:
     url: ${NOTIFICATION_SERVICE}
   ip-api:
