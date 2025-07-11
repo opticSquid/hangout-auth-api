@@ -94,8 +94,12 @@ public class SecurityConfiguration {
 		clientConfiguration.setAllowedHeaders(Arrays.asList("*"));
 		internalServiceConfiguration.setAllowedHeaders(Arrays.asList("*"));
 		clientConfiguration
-				.setAllowedMethods(Arrays.asList(HttpMethod.OPTIONS.name(), HttpMethod.POST.name(), HttpMethod.DELETE
-						.name()));
+				.setAllowedMethods(
+						Arrays.asList(
+								HttpMethod.OPTIONS.name(),
+								HttpMethod.GET.name(),
+								HttpMethod.POST.name(),
+								HttpMethod.DELETE.name()));
 		internalServiceConfiguration
 				.setAllowedMethods(Arrays.asList(HttpMethod.OPTIONS.name(), HttpMethod.POST.name()));
 		clientConfiguration.setAllowCredentials(true);
