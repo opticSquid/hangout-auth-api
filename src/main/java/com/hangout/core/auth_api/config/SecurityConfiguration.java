@@ -102,7 +102,7 @@ public class SecurityConfiguration {
 		internalServiceConfiguration.setAllowCredentials(false);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.setCorsConfigurations(Map.of(
-				"/v1/public/**", clientConfiguration,
+				"/v1/auth/**", clientConfiguration,
 				"/v1/user/**", clientConfiguration,
 				"/v1/internal/**", internalServiceConfiguration,
 				"/v1/admin/**", internalServiceConfiguration));
