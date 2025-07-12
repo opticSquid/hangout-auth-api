@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hangout.core.auth_api.dto.internal.AuthResult;
+import com.hangout.core.auth_api.dto.internal.AuthResultStatus;
 import com.hangout.core.auth_api.dto.response.AuthResponse;
 import com.hangout.core.auth_api.dto.response.DefaultResponse;
 import com.hangout.core.auth_api.service.AccessService;
@@ -50,7 +51,8 @@ public class UserController {
 		ResponseCookie cookie = cookieUtil.CreateCookie(authResult.refreshToken());
 		return ResponseEntity.ok()
 				.header(HttpHeaders.SET_COOKIE, cookie.toString())
-				.body(new AuthResponse(authResult.message(), authResult.accessToken()));
+				.body(new AuthResponse(authResult.status().label, authResult.accessToken(),
+						authResult.status().equals(AuthResultStatus.LONG_TERM_ACCESS)));
 	}
 
 	@DeleteMapping("/logout")

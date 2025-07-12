@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hangout.core.auth_api.dto.internal.AuthResult;
+import com.hangout.core.auth_api.dto.internal.AuthResultStatus;
 import com.hangout.core.auth_api.dto.request.ExistingUserCreds;
 import com.hangout.core.auth_api.dto.request.NewUser;
 import com.hangout.core.auth_api.dto.response.AuthResponse;
@@ -81,16 +82,13 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody ExistingUserCreds user, HttpServletRequest request) {
         AuthResult authResult = this.accessService.login(user, DeviceUtil.getDeviceDetails(request));
         ResponseCookie cookie = cookieUtil.CreateCookie(authResult.refreshToken());
-        if (authResult.message().equals("success")) {
+        if (authResult.status().equals(AuthResultStatus.LONG_TERM_ACCESS)
+                || authResult.status().equals(AuthResultStatus.SHORT_TERM_ACCESS)) {
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, cookie.toString())
                     .body(createResponse(authResult));
-        } else if (authResult.message().equals("user blocked")) {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         } else {
-            return ResponseEntity.status(HttpStatus.OK)
-                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                    .body(createResponse(authResult));
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
 
@@ -108,6 +106,7 @@ public class AuthController {
     }
 
     private AuthResponse createResponse(AuthResult authResult) {
-        return new AuthResponse(authResult.message(), authResult.accessToken());
+        return new AuthResponse(authResult.status().label, authResult.accessToken(),
+                authResult.status().equals(AuthResultStatus.LONG_TERM_ACCESS));
     }
 }
