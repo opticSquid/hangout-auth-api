@@ -64,8 +64,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler(BadCredentialsException.class)
 	public ProblemDetail exceptionHandler(BadCredentialsException ex) {
-		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
-		problem.setTitle("Username or password is wrong");
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "Username or password is wrong");
+		problem.setTitle("Bad Credentials");
 		return problem;
 	}
 
