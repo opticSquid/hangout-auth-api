@@ -48,7 +48,7 @@ public class UserController {
 			HttpServletRequest request) {
 		AuthResult authResult = this.accessService.trustDevice(accessToken.substring(7),
 				DeviceUtil.getDeviceDetails(request));
-		ResponseCookie cookie = cookieUtil.CreateCookie(authResult.refreshToken());
+		ResponseCookie cookie = cookieUtil.createCookie(authResult.refreshToken());
 		return ResponseEntity.ok()
 				.header(HttpHeaders.SET_COOKIE, cookie.toString())
 				.body(new AuthResponse(authResult.status().label, authResult.accessToken(),
@@ -60,9 +60,9 @@ public class UserController {
 	@Operation(summary = "logout of an active session")
 	public ResponseEntity<DefaultResponse> logout(@RequestHeader("Authorization") String accessToken,
 			HttpServletRequest req) {
-		return new ResponseEntity<>(
-				this.accessService.logout(accessToken.substring(7), DeviceUtil.getDeviceDetails(req)),
-				HttpStatus.OK);
+		ResponseCookie cookie = cookieUtil.deleteCookie();
+		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+				.body(this.accessService.logout(accessToken.substring(7), DeviceUtil.getDeviceDetails(req)));
 	}
 
 	@DeleteMapping

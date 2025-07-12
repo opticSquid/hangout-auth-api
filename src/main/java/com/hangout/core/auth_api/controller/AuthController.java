@@ -81,7 +81,7 @@ public class AuthController {
     @Operation(summary = "login exisiting user")
     public ResponseEntity<AuthResponse> login(@RequestBody ExistingUserCreds user, HttpServletRequest request) {
         AuthResult authResult = this.accessService.login(user, DeviceUtil.getDeviceDetails(request));
-        ResponseCookie cookie = cookieUtil.CreateCookie(authResult.refreshToken());
+        ResponseCookie cookie = cookieUtil.createCookie(authResult.refreshToken());
         if (authResult.status().equals(AuthResultStatus.LONG_TERM_ACCESS)
                 || authResult.status().equals(AuthResultStatus.SHORT_TERM_ACCESS)) {
             return ResponseEntity.ok()
@@ -96,7 +96,7 @@ public class AuthController {
     @WithSpan(kind = SpanKind.SERVER, value = "renew-token controller")
     @Operation(summary = "renew access token given a refresh token if you have an active session")
     public ResponseEntity<AuthResponse> renewToken(HttpServletRequest request) {
-        Optional<String> refreshToken = cookieUtil.ExtractRefreshTokenFromCookie(request);
+        Optional<String> refreshToken = cookieUtil.extractRefreshTokenFromCookie(request);
         if (refreshToken.isEmpty()) {
             throw new UnauthorizedAccessException("No cookie present in request");
         }
