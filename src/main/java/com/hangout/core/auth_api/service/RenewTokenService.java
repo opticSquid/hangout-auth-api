@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.hangout.core.auth_api.dto.internal.AuthResult;
+import com.hangout.core.auth_api.dto.internal.AuthResultStatus;
 import com.hangout.core.auth_api.dto.request.DeviceDetails;
 import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
@@ -85,11 +86,11 @@ class RenewTokenService {
         this.deviceRepo.save(device);
         user.addAccessRecord(newAccessRecord);
         this.userRepo.save(user);
-        String resposeMessage;
+        AuthResultStatus resposeMessage;
         if (device.getTrusted()) {
-            resposeMessage = "success";
+            resposeMessage = AuthResultStatus.LONG_TERM_ACCESS;
         } else {
-            resposeMessage = "untrusted device token renew";
+            resposeMessage = AuthResultStatus.SHORT_TERM_ACCESS;
         }
         return new AuthResult(newAccessToken, refreshToken, user.getUserId(), resposeMessage);
     }

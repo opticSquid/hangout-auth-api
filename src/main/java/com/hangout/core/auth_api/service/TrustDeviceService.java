@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.hangout.core.auth_api.dto.internal.AuthResult;
+import com.hangout.core.auth_api.dto.internal.AuthResultStatus;
 import com.hangout.core.auth_api.dto.request.DeviceDetails;
 import com.hangout.core.auth_api.entity.AccessRecord;
 import com.hangout.core.auth_api.entity.Action;
@@ -118,6 +119,6 @@ class TrustDeviceService {
     private AuthResult issueLongTermTokens(String username, UUID deviceId, BigInteger userId) {
         String accessToken = this.accessTokenUtil.generateToken(username, deviceId);
         String refreshToken = this.refreshTokenUtil.generateToken(username, deviceId);
-        return new AuthResult(accessToken, refreshToken, userId, "success");
+        return new AuthResult(accessToken, refreshToken, userId, AuthResultStatus.LONG_TERM_ACCESS);
     }
 }

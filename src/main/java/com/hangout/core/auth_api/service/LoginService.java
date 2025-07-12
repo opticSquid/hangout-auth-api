@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.hangout.core.auth_api.dto.internal.AuthResult;
+import com.hangout.core.auth_api.dto.internal.AuthResultStatus;
 import com.hangout.core.auth_api.dto.request.DeviceDetails;
 import com.hangout.core.auth_api.dto.request.ExistingUserCreds;
 import com.hangout.core.auth_api.entity.AccessRecord;
@@ -65,7 +66,7 @@ class LoginService {
         log.debug("user id from db: {}", user.getUserId());
         // if user is not enabled, do not allow login
         if (!user.isEnabled()) {
-            return new AuthResult(null, null, null, "user not enabled");
+            return new AuthResult(null, null, null, AuthResultStatus.USER_NOT_ENABLED);
         } else {
             // user is enabled
             // check if the current device is a trusted device or not
@@ -165,7 +166,7 @@ class LoginService {
         trustedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(trustedDevice);
         this.userRepo.save(user);
-        return new AuthResult(accessJwt, refreshJwt, user.getUserId(), "success");
+        return new AuthResult(accessJwt, refreshJwt, user.getUserId(), AuthResultStatus.LONG_TERM_ACCESS);
     }
 
     @WithSpan(value = "user logging in after manual logout")
@@ -183,7 +184,7 @@ class LoginService {
         trustedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(trustedDevice);
         this.userRepo.save(user);
-        return new AuthResult(accessJwt, refreshJwt, user.getUserId(), "success");
+        return new AuthResult(accessJwt, refreshJwt, user.getUserId(), AuthResultStatus.LONG_TERM_ACCESS);
     }
 
     @WithSpan(value = "user logging in an untrusted device")
@@ -202,7 +203,7 @@ class LoginService {
         untrustedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(untrustedDevice);
         this.userRepo.save(user);
-        return new AuthResult(accessJwt, shortTermRefreshJwt, user.getUserId(), "untrusted device login");
+        return new AuthResult(accessJwt, shortTermRefreshJwt, user.getUserId(), AuthResultStatus.SHORT_TERM_ACCESS);
     }
 
     @WithSpan(value = "user logging-in in a new device")
@@ -223,6 +224,6 @@ class LoginService {
         unIdentifiedDevice.addAccessRecord(accessRecord);
         this.deviceRepo.save(unIdentifiedDevice);
         this.userRepo.save(user);
-        return new AuthResult(accessJwt, shortTermRefreshJwt, user.getUserId(), "untrusted device login");
+        return new AuthResult(accessJwt, shortTermRefreshJwt, user.getUserId(), AuthResultStatus.SHORT_TERM_ACCESS);
     }
 }
