@@ -22,7 +22,7 @@ public class CookieUtil {
     @Qualifier("refreshTokenUtil")
     private RefreshTokenUtil refreshTokenUtil;
 
-    public ResponseCookie CreateCookie(String refreshToken) {
+    public ResponseCookie createCookie(String refreshToken) {
         ResponseCookie cookie = ResponseCookie.from(Constants.REFRESH_TOKEN, refreshToken)
                 .maxAge(calculateMaxAgeFromDate(refreshTokenUtil.getExpiresAt(refreshToken)))
                 .httpOnly(true)
@@ -33,7 +33,18 @@ public class CookieUtil {
         return cookie;
     }
 
-    public Optional<String> ExtractRefreshTokenFromCookie(HttpServletRequest request) {
+    public ResponseCookie deleteCookie() {
+        ResponseCookie cookie = ResponseCookie.from(Constants.REFRESH_TOKEN, "")
+                .maxAge(0)
+                .httpOnly(true)
+                .sameSite("SameSite")
+                .domain(cookieDomain)
+                .path("/auth-api/v1/auth/renew")
+                .build();
+        return cookie;
+    }
+
+    public Optional<String> extractRefreshTokenFromCookie(HttpServletRequest request) {
         String tokenValue = null;
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
