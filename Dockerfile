@@ -12,6 +12,6 @@ FROM amazoncorretto:21-alpine
 
 WORKDIR /app
 
-COPY --from=builder /usr/src/app/target/hangout-auth-api-2.3.7.jar .
+COPY --from=builder /usr/src/app/target/hangout-auth-api-2.4.0.jar .
 
-CMD ["java", "-jar", "hangout-auth-api-2.3.7.jar"]
+CMD ["java", "-jar", "hangout-auth-api-2.4.0.jar"]
