@@ -26,7 +26,8 @@ public class CookieUtil {
         ResponseCookie cookie = ResponseCookie.from(Constants.REFRESH_TOKEN, refreshToken)
                 .maxAge(calculateMaxAgeFromDate(refreshTokenUtil.getExpiresAt(refreshToken)))
                 .httpOnly(true)
-                .sameSite("SameSite")
+                .sameSite("None")
+                .secure(true)
                 .domain(cookieDomain)
                 .path("/auth-api/v1/auth/renew")
                 .build();
@@ -37,7 +38,8 @@ public class CookieUtil {
         ResponseCookie cookie = ResponseCookie.from(Constants.REFRESH_TOKEN, "")
                 .maxAge(0)
                 .httpOnly(true)
-                .sameSite("SameSite")
+                .sameSite("None")
+                .secure(true)
                 .domain(cookieDomain)
                 .path("/auth-api/v1/auth/renew")
                 .build();
