@@ -59,9 +59,11 @@ public class DeviceUtil {
      */
     @WithSpan(value = "collect device's details from request headers")
     public static DeviceDetails getDeviceDetails(HttpServletRequest request) {
+        log.debug("ip address from header: {}", request.getHeader("X-Forwarded-For"));
+        log.debug("ip address from request remote address: {}", request.getRemoteAddr());
         String ip = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For")
                 : request.getRemoteAddr();
-        log.debug("incoming ip address: {}", ip);
+        log.debug("final incoming ip address: {}", ip);
         String os = request.getHeader("OS");
         Integer screenWidth = Integer.parseInt(request.getHeader("Screen-Width"));
         Integer screenHeight = Integer.parseInt(request.getHeader("Screen-Height"));
