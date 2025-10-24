@@ -61,6 +61,9 @@ otel:
     otlp:
       protocol: grpc
       endpoint: ${OTEL_COLLECTOR}
+  instrumentation:
+    micrometer:
+      enabled: true
 
 springdoc:
   api-docs:
